@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { ColorCodesEnum, MeasurementTypeEnum, ProjectStatusEnum } from "../utils/enums.js";
-const VaultSchema = new mongoose.Schema({
+export const VaultSchema = new mongoose.Schema({
     allotedBudjet: Number,
     spentBudjet: Number,
     logs: mongoose.Schema.Types.Mixed,
@@ -23,7 +23,7 @@ const ItemSchema = new mongoose.Schema({
     description: { type: String },
     measurements: [MeasurementSchema],
 });
-const ChapterSchema = new mongoose.Schema({
+export const ChapterSchema = new mongoose.Schema({
     name: { type: String },
     code: { type: String },
     color: { type: String, enum: ColorCodesEnum },
@@ -40,4 +40,16 @@ const projectSchema = new mongoose.Schema({
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     chapters: [ChapterSchema],
 }, { timestamps: true });
+projectSchema.methods.addStaff = async function (userID) {
+    const user = await UserModel.findById(userID);
+    if (!user) throw new Error("User not found");
+    if (!user.projects.includes(this._id)) user.projects.push(this._id);
+    await user.save();
+}
+projectSchema.methods.removeStaff = async function (userID) {
+    const user = await UserModel.findById(userID);
+    if (!user) throw new Error("User not found");
+    if (user.projects.includes(this._id)) user.projects = user.projects.filter(id => id.toString() !== this._id.toString());
+    await user.save();
+}
 export const ProjectModel = mongoose.model("Project", projectSchema);

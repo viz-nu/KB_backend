@@ -11,9 +11,8 @@ export const projectResolvers = {
             const projectFields = getRequestedFieldNames(info, ['data']);
             if (projectFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (projectFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
-            // if (projectFields.has("span")) query = query.populate({ path: 'spans', model: "Span" });
             const projects = await query;
-            return { data: projects, metaData:{ page, limit, totalPages, totalDocuments } };
+            return { data: projects, metaData: { page, limit, totalPages, totalDocuments } };
         },
         project: async (_, { _id }, { req, res, user }, info) => {
             const project = await ProjectModel.findOne({ _id: _id, _id: { $in: user.projects } });

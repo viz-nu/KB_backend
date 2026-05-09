@@ -15,6 +15,8 @@ import { projectTypeDefs } from './project/schema.js';
 import { projectResolvers } from './project/resolvers.js';
 import { activityTypeDefs } from './activity/schema.js';
 import { activityResolvers } from './activity/resolvers.js';
+import { spanTypeDefs } from './span/schema.js';
+import { spanResolvers } from './span/resolvers.js';
 
 import 'dotenv/config'
 import { corsOptions } from '../server.js';
@@ -24,8 +26,8 @@ import cors from 'cors'
 import { authForGraphQL } from '../middleware/auth.js';
 import { ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
 
-const typeDefs = mergeTypeDefs([scopeAuthDirectiveTypeDefs, userTypeDefs, sharedTypeDefs, projectTypeDefs, activityTypeDefs]);
-const resolvers = mergeResolvers([userResolvers, projectResolvers, activityResolvers]);
+const typeDefs = mergeTypeDefs([scopeAuthDirectiveTypeDefs, userTypeDefs, sharedTypeDefs, projectTypeDefs, activityTypeDefs, spanTypeDefs]);
+const resolvers = mergeResolvers([userResolvers, projectResolvers, activityResolvers, spanResolvers]);
 const registerApollo = async (app, httpServer) => {
     const schema = makeExecutableSchema({ typeDefs, resolvers });
     const schemaWithDirectives = applyScopeAuthDirectives(schema);

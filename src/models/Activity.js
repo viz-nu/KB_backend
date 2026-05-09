@@ -21,24 +21,28 @@ const AuditLogSchema = new mongoose.Schema({
 }, { timestamps: true });
 const activitySchema = new mongoose.Schema({
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
-    title: { type: String },
-    WorkCategory: { type: String, required: true, enum: WorkCategory },
+    span: { type: mongoose.Schema.Types.ObjectId, ref: "Span" },
     status: { type: String, required: true, enum: EntryStatus, default: "DRAFT" },
     locationDescription: { type: String },
-    pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], } }, // [lng, lat]
-    // 🟩 Area / boundary
-    area: { type: { type: String, enum: ["Polygon"], default: "Polygon" }, coordinates: { type: [[[Number]]] } }, // polygon structure
-    // 📏 Route / path
-    route: { type: { type: String, enum: ["LineString"], default: "LineString" }, coordinates: { type: [[Number]] } }, // line structure
-    description: { type: String },
-    photos: [PhotoSchema],
-    semChecklist: [SemChecklistSchema],
-    measurements: mongoose.Schema.Types.Mixed,
     remarks: String,
     adminRemark: String,
     returnReason: String,
+    measurements: mongoose.Schema.Types.Mixed,
     auditLogs: [AuditLogSchema],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+
+    // title: { type: String },
+    // WorkCategory: { type: String, required: true, enum: WorkCategory },
+    // pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], } }, // [lng, lat]
+    // // 🟩 Area / boundary
+    // area: { type: { type: String, enum: ["Polygon"], default: "Polygon" }, coordinates: { type: [[[Number]]] } }, // polygon structure
+    // // 📏 Route / path
+    // route: { type: { type: String, enum: ["LineString"], default: "LineString" }, coordinates: { type: [[Number]] } }, // line structure
+    // description: { type: String },
+    // photos: [PhotoSchema],
+    // semChecklist: [SemChecklistSchema],
+
 }, { timestamps: true });
 export const ActivityModel = mongoose.model("Activity", activitySchema);

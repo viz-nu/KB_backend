@@ -3,6 +3,7 @@ import { ROLES, SCOPES_MAP } from "../utils/enums.js";
 import bcrypt from "bcrypt";
 const userSchema = new mongoose.Schema({
     projects: { type: [mongoose.Schema.Types.ObjectId], ref: "Project" },
+    spans: { type: [mongoose.Schema.Types.ObjectId], ref: "Span" },
     name: { type: String, required: true },
     designation: { type: String, required: true },
     email: { type: String, required: true, unique: true },
