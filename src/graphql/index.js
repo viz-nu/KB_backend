@@ -1,0 +1,160 @@
+import { ApolloServer } from '@apollo/server';
+import { GraphQLError, Kind } from 'graphql';
+
+import { applyScopeAuthDirectives, scopeAuthDirectiveTypeDefs } from './directives/scopeAuth.js';
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { expressMiddleware } from '@as-integrations/express5';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+
+
+import { userTypeDefs } from './users/schema.js';
+import { userResolvers } from './users/resolvers.js';
+import { sharedTypeDefs } from './sharedTypes.js';
+import { projectTypeDefs } from './project/schema.js';
+import { projectResolvers } from './project/resolvers.js';
+import { activityTypeDefs } from './activity/schema.js';
+import { activityResolvers } from './activity/resolvers.js';
+
+import 'dotenv/config'
+import { corsOptions } from '../server.js';
+import cors from 'cors'
+
+
+import { authForGraphQL } from '../middleware/auth.js';
+import { ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
+
+const typeDefs = mergeTypeDefs([scopeAuthDirectiveTypeDefs, userTypeDefs, sharedTypeDefs, projectTypeDefs, activityTypeDefs]);
+const resolvers = mergeResolvers([userResolvers, projectResolvers, activityResolvers]);
+const registerApollo = async (app, httpServer) => {
+    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    const schemaWithDirectives = applyScopeAuthDirectives(schema);
+    const apolloServer = new ApolloServer({
+        schema: schemaWithDirectives,
+        introspection: true,
+        formatResponse: (response, requestContext) => {
+            if (response.errors) return response;
+            // Function to recursively remove __typename fields
+            const removeTypename = (obj) => {
+                if (obj === null || typeof obj !== 'object') return obj;
+                if (Array.isArray(obj)) return obj.map(removeTypename);
+                const cleaned = {};
+                for (const [key, value] of Object.entries(obj)) {
+                    if (key !== '__typename') {
+                        cleaned[key] = removeTypename(value);
+                    }
+                }
+                return cleaned;
+            };
+            return {
+                success: true,
+                message: "OK",
+                data: removeTypename(response.data),
+            };
+        },
+        formatError: (error) => {
+            console.error('GraphQL Error Details:', { message: error.message, code: error.extensions?.code });
+            switch (error.code) {
+                case 20003:
+                    return new GraphQLError("Authentication failed - check your credentials.", { extensions: { code: 'AUTHENTICATION_FAILED' } });
+                case 21211:
+                    return new GraphQLError("Invalid phone number format.", { extensions: { code: 'INVALID_PHONE_NUMBER' } });
+                case 21408:
+                    return new GraphQLError("Permission denied - check account permissions.", { extensions: { code: 'INVALID_ACCESS' } });
+                case 21610:
+                    return new GraphQLError("Message body is required.", { extensions: { code: 'MESSAGE_BODY_REQUIRED' } });
+                case 30007:
+                    return new GraphQLError("Message delivery failed.", { extensions: { code: 'MESSAGE_DELIVERY_FAILED' } });
+            }
+            if (error.status === 400) return new GraphQLError("Bad Request - Invalid parameters.", { extensions: { code: 'BAD_REQUEST' } });
+            if (error.status === 401) return new GraphQLError("Unauthorized - Authentication failed.", { extensions: { code: 'UNAUTHORIZED' } });
+            if (error.status === 403) return new GraphQLError("Forbidden - Insufficient permissions.", { extensions: { code: 'FORBIDDEN' } });
+            if (error.status === 429) return new GraphQLError("Too Many Requests - Rate limited.", { extensions: { code: 'RATE_LIMITED' } });
+            if (error.message.includes('Context creation failed')) return new GraphQLError('Authentication service unavailable', { extensions: { code: 'AUTH_SERVICE_UNAVAILABLE' } });
+            return new GraphQLError(error.message, { extensions: { code: error.code || error.extensions?.code }, });
+        },
+        plugins: [ApolloServerPluginDrainHttpServer({ httpServer }), ApolloServerPluginLandingPageProductionDefault({ embed: true }), {
+            async requestDidStart(requestContext) {
+                return {
+                    async willSendResponse(ctx) {
+                        let rootOperation = null;
+                        let operationName = ctx.operationName || null;
+                        let rootFields = [];
+                        if (ctx.document) {
+                            for (const def of ctx.document.definitions) {
+                                if (def.kind === Kind.OPERATION_DEFINITION) {
+                                    // 1️⃣ query / mutation / subscription
+                                    rootOperation = def.operation;
+                                    // 2️⃣ operation name
+                                    operationName = def.name?.value || 'Anonymous';
+                                    // 3️⃣ root fields (main resolvers)
+                                    rootFields = def.selectionSet.selections.filter(sel => sel.kind === Kind.FIELD).map(field => field.name.value);
+                                }
+                            }
+                        }
+                        // query: ctx.request.query,
+                        // variables: ctx.request.variables,
+                        console.log({ rootOperation, operationName, rootFields, user: ctx.contextValue?.user?.id });
+                    }
+                };
+            }
+        }],
+    });
+    await apolloServer.start();
+
+    // List of operations that should skip authentication (public operations)
+    const publicOperations = ['Public', 'IntrospectionQuery'];
+
+    // Helper function to extract operation name from GraphQL query
+    const extractOperationName = (req) => {
+        // First check operationName directly (this is the most reliable)
+        if (req.body?.operationName) return req.body.operationName;
+        // If not found, try to parse from query string
+        const query = req.body?.query;
+        if (typeof query === 'string') {
+            // Match named operation patterns like: mutation Login, query SomeQuery, etc.
+            const namedOperationMatch = query.match(/(?:mutation|query|subscription)\s+(\w+)/);
+            if (namedOperationMatch && namedOperationMatch[1]) return namedOperationMatch[1];
+            // For anonymous operations, extract the first field name
+            // Handles patterns like: mutation { login(...) } or query { me }
+            const anonymousOperationMatch = query.match(/(?:mutation|query|subscription)\s*\{\s*(\w+)\s*\(?/);
+            if (anonymousOperationMatch && anonymousOperationMatch[1]) return anonymousOperationMatch[1];
+        }
+        // For batched queries
+        if (Array.isArray(req.body)) {
+            for (const item of req.body) {
+                if (item.operationName) return item.operationName;
+                if (item.query) {
+                    const namedOpMatch = item.query.match(/(?:mutation|query|subscription)\s+(\w+)/);
+                    if (namedOpMatch && namedOpMatch[1]) return namedOpMatch[1];
+                    const anonOpMatch = item.query.match(/(?:mutation|query|subscription)\s*\{\s*(\w+)\s*\(?/);
+                    if (anonOpMatch && anonOpMatch[1]) return anonOpMatch[1];
+                }
+            }
+        }
+        return null;
+    };
+
+    app.use(
+        '/graphql',
+        cors(corsOptions),
+        expressMiddleware(apolloServer, {
+            context: async ({ req, res }) => {
+                try {
+                    const operationName = extractOperationName(req);
+                    console.log("operationName", operationName); //Users
+                    if (operationName && publicOperations.includes(operationName)) {
+                        console.log(`Allowing public operation: ${operationName}`);
+                        return { req, res, user: null, isAuthenticated: false, isPublicOperation: true, decoded: null };
+                    }
+                    const authResult = await authForGraphQL(req, res);
+                    return authResult;
+                } catch (error) {
+                    // console.error('Auth error details:', { message: error.message, stack: error.stack, headers: req.headers, body: req.body });
+                    throw new GraphQLError(error.message, { extensions: { code: "UNAUTHENTICATED" } });
+                }
+            },
+        })
+    )
+}
+export default registerApollo;
