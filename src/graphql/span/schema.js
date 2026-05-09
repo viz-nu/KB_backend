@@ -10,6 +10,7 @@ type terminal {
     pointLocation: PointLocation
 }
 type Span {
+_id: ID
 project: Project
 name: String
 startPoint: terminal
