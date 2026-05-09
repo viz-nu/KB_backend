@@ -9,38 +9,30 @@ export const sharedTypeDefs = `#graphql
     totalPages: Int
     totalDocuments: Int
   }
-    type Coordinate {
-  lng: Float!
-  lat: Float!
-}
   type PointLocation {
   type: String!   # "Point"
-  coordinates: Coordinate!
+  coordinates: [Float]!
 }
   type PolygonLocation {
   type: String!   # "Polygon"
-  coordinates: [[Coordinate!]!]!
+  coordinates: [[[Float]!]!]!
 }
   type LineStringLocation {
   type: String!   # "LineString"
-  coordinates: [Coordinate!]!
-}
-  input CoordinateInput {
-  lng: Float!
-  lat: Float!
+  coordinates: [[Float]!]!
 }
 
 input PointLocationInput {
   type: String!   # "Point"
-  coordinates: CoordinateInput!
+  coordinates: [Float]!
 }
 
 input PolygonLocationInput {
-  coordinates: [[CoordinateInput!]!]!
+  coordinates: [[[Float]!]!]!
 }
 
 input LineStringLocationInput {
-  coordinates: [CoordinateInput!]!
+  coordinates: [[Float]!]!
 }
    enum MeasurementTypeEnum {
     number
