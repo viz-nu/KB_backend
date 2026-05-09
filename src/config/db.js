@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import 'dotenv/config'
-export const initialize = async () => {
+export const initialize = async (retryCount=0) => {
     try {
         if (mongoose.connection.readyState === 1) return; // already connected
         await mongoose.connect(process.env.MONGO_URI);
