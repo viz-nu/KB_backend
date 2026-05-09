@@ -31,7 +31,7 @@ input SpanInput {
     name: String!
     startPoint: terminalInput!
     endPoint: terminalInput!
-    status: SpanStatusEnum!
+    status: SpanStatusEnum
     chapters: [ChapterInput]
     Vault: VaultInput
 }
