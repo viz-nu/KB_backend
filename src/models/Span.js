@@ -13,7 +13,7 @@ const spanSchema = new mongoose.Schema({
         pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number] } }, // [lng, lat]
     },
     status: { type: String, enum: ["IN_PROGRESS", "COMPLETED", "CANCELLED", "PENDING"], default: "IN_PROGRESS" },
-    chapters: ChapterSchema,
+    chapters: [ChapterSchema],
     Vault: VaultSchema,
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
