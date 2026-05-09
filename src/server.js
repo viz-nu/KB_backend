@@ -1,5 +1,7 @@
 import express from 'express';
 import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -9,6 +11,9 @@ import { initialize } from "./config/db.js";
 import errorHandlerMiddleware from './middleware/errorHandler.js';
 import registerApollo from './graphql/index.js';
 import 'dotenv/config'
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const reactBuildPath = path.resolve(__dirname, '../build');
 const whitelist = ["http://localhost:5174", "http://localhost:3000", "http://localhost:8080", "https://studio.apollographql.com","https://kbbackend-production.up.railway.app"];
 export const corsOptions = {
     origin: (origin, callback) => (!origin || whitelist.indexOf(origin) !== -1) ? callback(null, true) : callback(new Error('Not allowed by CORS')),
@@ -47,6 +52,7 @@ export const createApp = async () => {
         app.use(cookieParser());
         app.use(express.json({ type: ["application/json", "text/plain"], limit: '50mb' }));
         app.use(morgan(':date[web] :method :url :status - :response-time ms'));
+        app.use(express.static(reactBuildPath));
         // app.use((req, res, next) => {
         //     req.body = sanitize(req.body);
         //     req.params = sanitize(req.params);
@@ -56,7 +62,7 @@ export const createApp = async () => {
         // app.use(express.urlencoded({ limit: '50mb', extended: true }));
         app.use(bodyParser.urlencoded({ extended: true }));
         // Routes
-        app.get('/', (_, res) => res.status(200).send('Server running'));
+        app.get('/', (_, res) => res.status(200).sendFile(path.join(reactBuildPath, 'index.html')));
         // Apollo setup
         try {
             await registerApollo(app, server);
