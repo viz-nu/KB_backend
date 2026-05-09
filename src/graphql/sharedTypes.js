@@ -31,6 +31,7 @@ export const sharedTypeDefs = `#graphql
 }
 
 input PointLocationInput {
+  type: String!   # "Point"
   coordinates: CoordinateInput!
 }
 
