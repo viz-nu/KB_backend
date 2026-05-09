@@ -9,7 +9,7 @@ import { initialize } from "./config/db.js";
 import errorHandlerMiddleware from './middleware/errorHandler.js';
 import registerApollo from './graphql/index.js';
 import 'dotenv/config'
-const whitelist = ["http://localhost:5174", "http://localhost:3000", "http://localhost:8080", "https://studio.apollographql.com"];
+const whitelist = ["http://localhost:5174", "http://localhost:3000", "http://localhost:8080", "https://studio.apollographql.com","https://kbbackend-production.up.railway.app"];
 export const corsOptions = {
     origin: (origin, callback) => (!origin || whitelist.indexOf(origin) !== -1) ? callback(null, true) : callback(new Error('Not allowed by CORS')),
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
