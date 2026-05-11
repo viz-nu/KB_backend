@@ -62,7 +62,7 @@ export const createApp = async () => {
         // app.use(express.urlencoded({ limit: '50mb', extended: true }));
         app.use(bodyParser.urlencoded({ extended: true }));
         // Routes
-        app.get('/', (_, res) => res.status(200).sendFile(path.join(reactBuildPath, 'index.html')));
+        app.get('/{*splat}', (_, res) => res.status(200).sendFile(path.join(reactBuildPath, 'index.html')));
         // Apollo setup
         try {
             await registerApollo(app, server);
@@ -77,13 +77,6 @@ export const createApp = async () => {
             console.error("error with Error handling", error);
             throw error;
         }
-        try {
-            app.use("/{*splat}", (_, res) => res.status(404).send("Route does not exist"))
-        } catch (error) {
-            console.error("error with Route does not exist", error);
-            throw error;
-        }
-
         return { app, server };
     } catch (error) {
         console.error("failed to start server", error);
