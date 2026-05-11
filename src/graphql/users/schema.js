@@ -14,10 +14,10 @@ input UserInput {
     projects: [ID]
     name: String
     designation: String
-    email: String!
-    role: String!
+    email: String
+    role: String
     scopes: [String]
-    password: String!
+    password: String
 }
 type LoginResponse {
     accessToken: String
@@ -37,7 +37,7 @@ type Mutation{
     login(email: String!, password: String!): LoginResponse
     createUser(userInput: UserInput!): User @requireScope(scope: "user:write")
     newAccessToken(refreshToken: String!): String
-    updateUser(_id: ID!, userInput: UserInput!): User @requireScope(scope: "user:write")
+    updateUser(_id: ID!, userInput: UserInput): User @requireScope(scope: "user:write")
  }
 `;
 

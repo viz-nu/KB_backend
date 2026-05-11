@@ -1,18 +1,8 @@
 export const activityTypeDefs = `#graphql
-enum WorkCategoryEnum {
-    CABLE_LAYING
-    LOCATION_BOX
-    SIGNAL_ITEMS
-    POINT_MACHINE
-    TRACK_CIRCUIT
-    SIGHTING_BOARD
-    INDOOR_WORK
-    POWER_SUPPLY
-    TELECOM_WORKS
-}
+
 enum EntryStatusEnum {
     DRAFT
-    PENDING
+    SUBMITTED
     APPROVED
     REJECTED
     RETURNED
@@ -40,8 +30,8 @@ type AuditLog {
 type Activity {
     _id: ID
     project: Project
-    title: String
-    WorkCategory: WorkCategoryEnum
+    span: Span
+    WorkCategory: String
     status: EntryStatusEnum
     locationDescription: String
     remarks: String
@@ -51,13 +41,6 @@ type Activity {
     updatedBy: User
     createdAt: DateTime
     updatedAt: DateTime
-    auditLogs: [AuditLog]
-    photos: [Photo]
-    semChecklist: [SemChecklist]
-    measurements: JSON
-    pointLocation: PointLocation
-    area: PolygonLocation
-    route: LineStringLocation
 }
 input PhotoInput {
     url: String!
@@ -73,28 +56,21 @@ input SemChecklistInput {
     remark: String!
 }
 input ActivityInput {
-    project: ID!
-    title: String!
-    WorkCategory: WorkCategoryEnum!
-    status: EntryStatusEnum!
+    spanId: ID
+    lineItems:JSON
+    WorkCategory: String
     locationDescription: String
-    pointLocation: PointLocationInput
-    area: PolygonLocationInput
-    route: LineStringLocationInput
     remarks: String
     adminRemark: String
     returnReason: String
-    description: String
-    photos: [PhotoInput]
-    semChecklist: [SemChecklistInput]
-    measurements: JSON
+    status: String
 }
 type ActivityPagination {
     data: [Activity]
-        PaginationMetaData: PaginationMetaData
+    PaginationMetaData: PaginationMetaData
 }
  type Query{
-  activities(page: Int = 1, limit: Int = 10): ActivityPagination @requireAnyScope(scopes: ["activity:read","activity:write"])
+  activities(page: Int = 1, limit: Int = 10 status:String): ActivityPagination @requireAnyScope(scopes: ["activity:read","activity:write"])
   activity(_id: ID!): Activity @requireAnyScope(scopes: ["activity:read","activity:write"])
  }
 

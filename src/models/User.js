@@ -23,13 +23,6 @@ userSchema.methods.hasAllScopes = function (scopes) {
     return scopes.every(scope => this.scopes.includes(scope));
 };
 userSchema.pre("save", async function () {
-    if (this.isNew) {
-        console.log("this is new user", { role: this.role, password: this.password });
-        this.scopes = SCOPES_MAP[this.role];
-        this.password = await bcrypt.hash(this.password, 10);
-    }
-    else {
-        if (this.isModified("password")) this.password = await bcrypt.hash(this.password, 10);
-    }
+    if (this.isNew) this.scopes = SCOPES_MAP[this.role];
 });
 export const UserModel = mongoose.model("User", userSchema);

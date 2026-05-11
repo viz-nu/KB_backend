@@ -45,6 +45,7 @@ export const userResolvers = {
                 userInput.projects = projects.map(project => project._id);
             }
             userInput.createdBy = user._id;
+            userInput.password= await bcrypt.hash(userInput.password, 10);
             const newUser = await UserModel.create(userInput);
             return newUser;
         },
@@ -54,6 +55,7 @@ export const userResolvers = {
                 if (projects.length !== userInput.projects.length) throw new GraphQLError("Projects not found", { extensions: { code: 'PROJECTS_NOT_FOUND' } });
                 userInput.projects = projects.map(project => project._id);
             }
+            if(userInput.password) userInput.password= await bcrypt.hash(userInput.password, 10);
             const UpdatedUser = await UserModel.findByIdAndUpdate(_id, { ...userInput, updatedBy: user._id }, { new: true });
             if (!UpdatedUser) throw new GraphQLError("User not found", { extensions: { code: 'USER_NOT_FOUND' } });
             return UpdatedUser;

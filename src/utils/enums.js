@@ -1,5 +1,5 @@
 export const ROLES = ["system_admin", "project_admin", "field_engineer", "vendor"];
-export const EntryStatus = ["DRAFT", "PENDING", "APPROVED", "REJECTED", "RETURNED"];
+export const EntryStatus = ["DRAFT","SUBMITTED", "APPROVED", "REJECTED", "RETURNED"];
 export const ReportType = ["PROGRESS", "COMPLIANCE", "FINANCIAL"];
 export const WorkCategory = ["CABLE_LAYING", "LOCATION_BOX", "SIGNAL_ITEMS", "POINT_MACHINE", "TRACK_CIRCUIT", "SIGHTING_BOARD", "INDOOR_WORK", "POWER_SUPPLY", "TELECOM_WORKS"];
 export const SCOPES_MAP = {
