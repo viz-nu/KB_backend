@@ -7,6 +7,7 @@ enum SpanStatusEnum {
 }
 type terminal {
     placeName: String
+    chainNumber:Int
     pointLocation: PointLocation
 }
 type Span {
@@ -24,14 +25,15 @@ createdAt: DateTime
 updatedAt: DateTime
 }
 input terminalInput {
-    placeName: String!
-    pointLocation: PointLocationInput!
+    chainNumber:Int
+    placeName: String
+    pointLocation: PointLocationInput
 }
 input SpanInput {
-    project: ID!
-    name: String!
-    startPoint: terminalInput!
-    endPoint: terminalInput!
+    project: ID
+    name: String
+    startPoint: terminalInput
+    endPoint: terminalInput
     status: SpanStatusEnum
     chapters: [ChapterInput]
     Vault: VaultInput
@@ -46,7 +48,7 @@ input SpanInput {
  }
  type Mutation{ 
     createSpan(spanInput: SpanInput!): Span @requireScope(scope: "span:write")
-    updateSpan(_id: ID!, name: String, startPoint: terminalInput, endPoint: terminalInput, status: SpanStatusEnum): Span @requireScope(scope: "span:write")
+    updateSpan(_id: ID!, spanInput: SpanInput): Span @requireScope(scope: "span:write")
     addStaff(_id: ID!, userID: ID!): Span @requireScope(scope: "span:write")
     removeStaff(_id: ID!, userID: ID!): Span @requireScope(scope: "span:write")
  }

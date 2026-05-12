@@ -40,13 +40,16 @@ export const spanResolvers = {
             await user.save();
             return span;
         },
-        updateSpan: async (_, { _id, name, startPoint, endPoint, status }, { req, res, user }, info) => {
+        updateSpan: async (_, { _id, spanInput}, { req, res, user }, info) => {
+            const {name, startPoint, endPoint, chapters, Vault,status } = spanInput;
             if (!user.spans.includes(_id)) throw new GraphQLError("You are not authorized to update this span", { extensions: { code: 'UNAUTHORIZED' } });
             const span = await SpanModel.findById(_id);
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });
             if (name) span.name = name;
             if (startPoint) span.startPoint = startPoint;
             if (endPoint) span.endPoint = endPoint;
+            if (chapters) span.chapters = chapters;
+            if (Vault) span.Vault = Vault;
             if (status) span.status = status;
             span.updatedBy = user._id;
             await span.save();

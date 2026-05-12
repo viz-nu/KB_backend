@@ -1,17 +1,16 @@
 import mongoose from 'mongoose';
 import { ChapterSchema, VaultSchema } from './Project.js';
 import { UserModel } from './User.js';
+const terminalSchema = new mongoose.Schema({
+    chainNumber: Number,
+    placeName: String,
+    pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number] } }, // [lng, lat]
+});
 const spanSchema = new mongoose.Schema({
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     name: String,
-    startPoint: {
-        placeName: String,
-        pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number] } }, // [lng, lat]
-    },
-    endPoint: {
-        placeName: String,
-        pointLocation: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number] } }, // [lng, lat]
-    },
+    startPoint: terminalSchema,
+    endPoint: terminalSchema,
     status: { type: String, enum: ["IN_PROGRESS", "COMPLETED", "CANCELLED", "PENDING"], default: "IN_PROGRESS" },
     chapters: [ChapterSchema],
     Vault: VaultSchema,

@@ -96,8 +96,7 @@ const registerApollo = async (app, httpServer) => {
                         }
                         // query: ctx.request.query,
                         // variables: ctx.request.variables,
-                        console.log({ rootOperation, operationName, rootFields, user: ctx.contextValue?.user?.id });
-                    }
+                        console.log(`userId: ${ctx.contextValue?.user?.id} - ${rootOperation} -> ${operationName} => ${rootFields}`);                    }
                 };
             }
         }],

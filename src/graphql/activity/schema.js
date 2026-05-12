@@ -36,6 +36,7 @@ type Activity {
     locationDescription: String
     remarks: String
     adminRemark: String
+    lineItems:JSON
     returnReason: String
     createdBy: User
     updatedBy: User
