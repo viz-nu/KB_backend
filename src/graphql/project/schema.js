@@ -31,14 +31,12 @@ input VaultInput {
         logs: JSON
  }
  input ChapterInput {
- id:String
     name: String
     code: String
     color: String
     items: [ItemInput]
  }
  input ItemInput {
- id:String
     label: String
     code: String
     description: String
@@ -46,7 +44,6 @@ input VaultInput {
  }
 
  input ProjectInput {
- id:String
     name: String
     code: String
     description: String
