@@ -15,6 +15,7 @@ export const spanResolvers = {
             if (spanFields.has("project")) query = query.populate({ path: 'project', model: "Project" });
             if (spanFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (spanFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
+            if (spanFields.has("chapters")) query = query.populate({ path: 'chapters', model: "Chapter" });
             if (spanFields.has("staff")) query = query.populate({ path: 'staff', model: "User" });
             const spans = await query;
             return { data: spans, metaData: { page, limit, totalPages, totalDocuments } };
@@ -26,6 +27,7 @@ export const spanResolvers = {
             if (spanFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (spanFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
             if (spanFields.has("staff")) query = query.populate({ path: 'staff', model: "User" });
+            if (spanFields.has("chapters")) query = query.populate({ path: 'chapters', model: "Chapter" });
             const span = await query;
             return span;
         }

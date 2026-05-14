@@ -24,9 +24,10 @@ const ItemSchema = new mongoose.Schema({
     measurements: [MeasurementSchema],
 });
 export const ChapterSchema = new mongoose.Schema({
+    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },  
     name: { type: String },
     code: { type: String },
     color: { type: String, enum: ColorCodesEnum },
-    items: [ItemSchema],
+    items: [ItemSchema]
 });
 export const ChapterModel = mongoose.model("Chapter", ChapterSchema);

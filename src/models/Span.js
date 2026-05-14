@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ChapterSchema, VaultSchema } from './Project.js';
+import { VaultSchema } from './Project.js';
 import { UserModel } from './User.js';
 const terminalSchema = new mongoose.Schema({
     chainNumber: Number,
@@ -12,7 +12,7 @@ const spanSchema = new mongoose.Schema({
     startPoint: terminalSchema,
     endPoint: terminalSchema,
     status: { type: String, enum: ["IN_PROGRESS", "COMPLETED", "CANCELLED", "PENDING"], default: "IN_PROGRESS" },
-    chapters: [ChapterSchema],
+    chapters: { type: [mongoose.Schema.Types.ObjectId], ref: "Chapter" },
     Vault: VaultSchema,
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     staff: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

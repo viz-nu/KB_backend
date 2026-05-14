@@ -5,30 +5,6 @@ export const VaultSchema = new mongoose.Schema({
     spentBudjet: Number,
     logs: mongoose.Schema.Types.Mixed,
 });
-const MeasurementSchema = new mongoose.Schema({
-    key: { type: String },
-    label: { type: String },
-    unit: { type: String },
-    type: { type: String, enum: MeasurementTypeEnum },
-    options: [String],
-    billingRate: Number,
-    fixedNumber: Number,
-    fixedString: String,
-    requiresPhoto: Boolean
-});
-MeasurementSchema.add({ columns: [MeasurementSchema] });
-const ItemSchema = new mongoose.Schema({
-    label: { type: String },
-    code: { type: String },
-    description: { type: String },
-    measurements: [MeasurementSchema],
-});
-export const ChapterSchema = new mongoose.Schema({
-    name: { type: String },
-    code: { type: String },
-    color: { type: String, enum: ColorCodesEnum },
-    items: [ItemSchema],
-});
 const projectSchema = new mongoose.Schema({
     name: { type: String },
     description: { type: String },
@@ -38,15 +14,12 @@ const projectSchema = new mongoose.Schema({
     cumulativeProgress: mongoose.Schema.Types.Mixed,
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    chapters: [ChapterSchema],
+    chapters: { type: [mongoose.Schema.Types.ObjectId], ref: "Chapter" },
 }, { timestamps: true });
 projectSchema.methods.addStaff = async function (userID) {
     const user = await UserModel.findById(userID);
     if (!user) throw new Error("User not found");
-    // if (!user.projects.includes(this._id)) user.projects.push(this._id);
-    // await user.save();
     await UserModel.updateOne({ _id: userID }, { $addToSet: { projects: this._id } });
-
 }
 projectSchema.methods.removeStaff = async function (userID) {
     const user = await UserModel.findById(userID);

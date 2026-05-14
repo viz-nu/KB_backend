@@ -35,7 +35,7 @@ input SpanInput {
     startPoint: terminalInput
     endPoint: terminalInput
     status: SpanStatusEnum
-    chapters: [ChapterInput]
+    chapters: [ID]
     Vault: VaultInput
 }
  type SpanPagination {

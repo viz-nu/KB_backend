@@ -31,6 +31,7 @@ input VaultInput {
         logs: JSON
  }
  input ChapterInput {
+    _id: ID
     name: String
     code: String
     color: String
