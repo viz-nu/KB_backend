@@ -56,13 +56,13 @@ export const spanResolvers = {
             return span;
         },
         addStaff: async (_, { _id, userID }, { req, res, user }, info) => {
-            const span = await SpanModel.findOne({ _id: _id, _id: { $in: user.spans } });
+            const span = await SpanModel.findById(_id);
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });
             await span.addStaff(userID);
             return span;
         },
         removeStaff: async (_, { _id, userID }, { req, res, user }, info) => {
-            const span = await SpanModel.findOne({ _id: _id, _id: { $in: user.spans } });
+            const span = await SpanModel.findById(_id);
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });
             await span.removeStaff(userID);
             return span;

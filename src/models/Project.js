@@ -43,13 +43,14 @@ const projectSchema = new mongoose.Schema({
 projectSchema.methods.addStaff = async function (userID) {
     const user = await UserModel.findById(userID);
     if (!user) throw new Error("User not found");
-    if (!user.projects.includes(this._id)) user.projects.push(this._id);
-    await user.save();
+    // if (!user.projects.includes(this._id)) user.projects.push(this._id);
+    // await user.save();
+    await UserModel.updateOne({ _id: userID }, { $addToSet: { projects: this._id } });
+
 }
 projectSchema.methods.removeStaff = async function (userID) {
     const user = await UserModel.findById(userID);
     if (!user) throw new Error("User not found");
-    if (user.projects.includes(this._id)) user.projects = user.projects.filter(id => id.toString() !== this._id.toString());
-    await user.save();
+    await UserModel.updateOne({ _id: userID }, { $pull: { projects: this._id } });
 }
 export const ProjectModel = mongoose.model("Project", projectSchema);

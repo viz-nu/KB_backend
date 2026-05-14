@@ -20,18 +20,28 @@ const spanSchema = new mongoose.Schema({
 spanSchema.methods.addStaff = async function (userID) {
     const user = await UserModel.findById(userID);
     if (!user) throw new Error("User not found");
-    if (!user.projects.includes(this.project)) user.projects.push(this.project);
-    if (!user.spans.includes(this._id)) user.spans.push(this._id);
-    if (!this.staff.includes(userID)) this.staff.push(userID);
-    await user.save();
-    await this.save();
-}
-spanSchema.methods.removeStaff = async function (userID) {
+  
+    await Promise.all([
+      UserModel.updateOne(
+        { _id: userID },
+        { $addToSet: { 
+            projects: this.project,   // $addToSet handles ObjectId equality correctly
+            spans: this._id 
+        }}
+      ),
+      this.constructor.updateOne(
+        { _id: this._id },
+        { $addToSet: { staff: userID } }
+      ),
+    ]);
+  };
+  spanSchema.methods.removeStaff = async function (userID) {
     const user = await UserModel.findById(userID);
     if (!user) throw new Error("User not found");
-    if (user.spans.includes(this._id)) user.spans = user.spans.filter(id => id.toString() !== this._id.toString());
-    if (this.staff.includes(userID)) this.staff = this.staff.filter(id => id.toString() !== userID.toString());
-    await user.save();
-    await this.save();
-}
+  
+    await Promise.all([
+      UserModel.updateOne({ _id: userID }, { $pull: { spans: this._id } }),
+      this.constructor.updateOne({ _id: this._id }, { $pull: { staff: userID } }),
+    ]);
+  };
 export const SpanModel = mongoose.model("Span", spanSchema);
