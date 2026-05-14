@@ -1,12 +1,20 @@
 import { SpanModel } from "../../models/Span.js";
 import { ActivityModel } from "../../models/Activity.js";
 import { getRequestedFieldNames } from "../utils/requestedFields.js";
+import { GraphQLError } from "graphql";
 export const activityResolvers = {
     Query: {
         activities: async (_, { page = 1, limit = 10, status, span, project, createdBy, fromDate, toDate }, { req, res, user }, info) => {
             const filters = { span: { $in: user.spans } };
-            if (fromDate) filters.createdAt = { $gte: fromDate };
-            if (toDate) filters.createdAt = { $lte: toDate };
+            if (fromDate || toDate) {
+                filters.createdAt = {};
+                if (fromDate) filters.createdAt.$gte = new Date(fromDate);
+                if (toDate) {
+                    const endDate = new Date(toDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    filters.createdAt.$lte = endDate;
+                }
+            }
             if (status) filters.status = status;
             if (span) filters.span = { $in: span };
             if (project) filters.project = { $in: project };
@@ -20,7 +28,7 @@ export const activityResolvers = {
             if (activityFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (activityFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
             const activities = await query;
-            return { data: activities, metaData: { page, limit, totalPages, totalDocuments } };
+            return { data: activities, PaginationMetaData: { page, limit, totalPages, totalDocuments } };
         },
         activitiesFacet: async (_, { status, span, project, createdBy }, { req, res, user }, info) => {
             const filters = { span: { $in: user.spans } };
@@ -193,7 +201,7 @@ export const activityResolvers = {
             return (facets || { statusCount: [], projectCount: [], createdByCount: [], spanCount: [], totalDocuments: 0 });
         },
         activity: async (_, { _id }, { req, res, user }, info) => {
-            const activity = await ActivityModel.findOne({ project: { $in: user.projects }, _id: _id });
+            const activity = await ActivityModel.findOne({ $and: [{ _id: _id }, { project: { $in: user.projects } }] });
             if (!activity) throw new GraphQLError("Activity not found", { extensions: { code: 'ACTIVITY_NOT_FOUND' } });
             return activity;
         }
@@ -201,21 +209,21 @@ export const activityResolvers = {
     Mutation: {
         createActivity: async (_, { activityInput }, { req, res, user }, info) => {
             const { spanId, lineItems, locationDescription, remarks, WorkCategory } = activityInput
-            const span = await SpanModel.findOne({ _id: spanId, _id: { $in: user.spans } });
+            const span = await SpanModel.findOne({ $and: [{ _id: spanId }, { _id: { $in: user.spans } }] });
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'Spans' } });
             const activity = await ActivityModel.create({ lineItems, locationDescription, remarks, WorkCategory, span: spanId, project: span.project, createdBy: user._id });
             if (!activity) throw new GraphQLError("Activity not created", { extensions: { code: 'ACTIVITY_NOT_CREATED' } });
             return activity;
         },
         updateActivity: async (_, { _id, activityInput }, { req, res, user }, info) => {
-            const span = await SpanModel.findOne({ _id: activityInput.spanId, _id: { $in: user.spans } });
+            const span = await SpanModel.findOne({ $and: [{ _id: activityInput.spanId }, { _id: { $in: user.spans } }] });
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'Spans' } });
             const activity = await ActivityModel.findByIdAndUpdate(_id, { ...activityInput, updatedBy: user._id }, { new: true });
             if (!activity) throw new GraphQLError("Activity not updated", { extensions: { code: 'ACTIVITY_NOT_UPDATED' } });
             return activity;
         },
         deleteActivity: async (_, { _id }, { req, res, user }, info) => {
-            const activity = await ActivityModel.findOne({ project: { $in: user.projects }, _id: _id });
+            const activity = await ActivityModel.findOne({ $and: [{ _id: _id }, { project: { $in: user.projects } }] });
             if (!activity) throw new GraphQLError("Activity not found", { extensions: { code: 'ACTIVITY_NOT_FOUND' } });
             const deletedActivity = await ActivityModel.findByIdAndDelete(_id);
             return true;

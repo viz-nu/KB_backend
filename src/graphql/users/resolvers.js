@@ -20,7 +20,7 @@ export const userResolvers = {
             const userFields = getRequestedFieldNames(info, ['data']);
             if (userFields.has("projects")) query = query.populate({ path: 'projects', model: "Project" });
             const users = await query;
-            return { data: users, metaData: { page, limit, totalPages, totalDocuments } };
+            return { data: users, PaginationMetaData: { page, limit, totalPages, totalDocuments } };
         },
         user: async (_, { _id }, { req, res, user }, info) => {
             const User = await UserModel.findById(_id);

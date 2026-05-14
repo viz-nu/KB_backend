@@ -18,7 +18,7 @@ export const spanResolvers = {
             if (spanFields.has("chapters")) query = query.populate({ path: 'chapters', model: "Chapter" });
             if (spanFields.has("staff")) query = query.populate({ path: 'staff', model: "User" });
             const spans = await query;
-            return { data: spans, metaData: { page, limit, totalPages, totalDocuments } };
+            return { data: spans, PaginationMetaData: { page, limit, totalPages, totalDocuments } };
         },
         span: async (_, { _id }, { req, res, user }, info) => {
             let query = SpanModel.findOne({ $and: [{ _id: _id }, { _id: { $in: user.spans } }] });
@@ -35,7 +35,7 @@ export const spanResolvers = {
     Mutation: {
         createSpan: async (_, { spanInput }, { req, res, user }, info) => {
             const { project, name, startPoint, endPoint, chapters, Vault } = spanInput;
-            const Project = await ProjectModel.findOne({ _id: project, _id: { $in: user.projects } });
+            const Project = await ProjectModel.findOne({ $and: [{ _id: project }, { _id: { $in: user.projects } }] });
             if (!Project) throw new GraphQLError("Project not found", { extensions: { code: 'PROJECT_NOT_FOUND' } });
             const span = await SpanModel.create({ name, startPoint, endPoint, chapters, Vault, project: Project._id, createdBy: user._id });
             user.spans.push(span._id);
