@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { ColorCodesEnum, MeasurementTypeEnum, ProjectStatusEnum } from "../utils/enums.js";
+import { ProjectStatusEnum } from "../utils/enums.js";
+import { UserModel } from "./User.js"
 export const VaultSchema = new mongoose.Schema({
     allotedBudjet: Number,
     spentBudjet: Number,
