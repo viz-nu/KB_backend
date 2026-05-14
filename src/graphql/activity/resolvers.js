@@ -3,9 +3,14 @@ import { ActivityModel } from "../../models/Activity.js";
 import { getRequestedFieldNames } from "../utils/requestedFields.js";
 export const activityResolvers = {
     Query: {
-        activities: async (_, { page = 1, limit = 10, status }, { req, res, user }, info) => {
+        activities: async (_, { page = 1, limit = 10, status, span, project, createdBy, fromDate, toDate }, { req, res, user }, info) => {
             const filters = { span: { $in: user.spans } };
+            if (fromDate) filters.createdAt = { $gte: fromDate };
+            if (toDate) filters.createdAt = { $lte: toDate };
             if (status) filters.status = status;
+            if (span) filters.span = { $in: span };
+            if (project) filters.project = { $in: project };
+            if (createdBy) filters.createdBy = { $in: createdBy };
             const totalDocuments = await ActivityModel.countDocuments(filters);
             const totalPages = Math.ceil(totalDocuments / limit);
             let query = ActivityModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
@@ -16,6 +21,176 @@ export const activityResolvers = {
             if (activityFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
             const activities = await query;
             return { data: activities, metaData: { page, limit, totalPages, totalDocuments } };
+        },
+        activitiesFacet: async (_, { status, span, project, createdBy }, { req, res, user }, info) => {
+            const filters = { span: { $in: user.spans } };
+            if (status) filters.status = status;
+            if (span) filters.span = { $in: span };
+            if (project) filters.project = { $in: project };
+            if (createdBy) filters.createdBy = { $in: createdBy };
+            const [facets] = await ActivityModel.aggregate([
+                { $match: filters },
+                {
+                    $facet: {
+                        // Count by status
+                        statusCount: [
+                            {
+                                $group: {
+                                    _id: "$status",
+                                    count: { $sum: 1 }
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    status: "$_id",
+                                    count: 1
+                                }
+                            },
+                            {
+                                $sort: { status: 1 }
+                            }
+                        ],
+
+                        // Count by project with project name
+                        projectCount: [
+                            {
+                                $group: {
+                                    _id: "$project",
+                                    count: { $sum: 1 }
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "projects",
+                                    localField: "_id",
+                                    foreignField: "_id",
+                                    as: "project"
+                                }
+                            },
+                            {
+                                $unwind: {
+                                    path: "$project",
+                                    preserveNullAndEmptyArrays: true
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    project: {
+                                        _id: "$_id",
+                                        name: "$project.name",
+                                        code: "$project.code"
+                                    },
+                                    count: 1
+                                }
+                            },
+                            {
+                                $sort: { count: -1 }
+                            }
+                        ],
+
+                        // Count by creator with user details
+                        createdByCount: [
+                            {
+                                $group: {
+                                    _id: "$createdBy",
+                                    count: { $sum: 1 }
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "users",
+                                    localField: "_id",
+                                    foreignField: "_id",
+                                    as: "user"
+                                }
+                            },
+                            {
+                                $unwind: {
+                                    path: "$user",
+                                    preserveNullAndEmptyArrays: true
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    createdBy: {
+                                        _id: "$_id",
+                                        name: "$user.name",
+                                        email: "$user.email",
+                                        designation: "$user.designation"
+                                    },
+                                    count: 1
+                                }
+                            },
+                            {
+                                $sort: { count: -1 }
+                            }
+                        ],
+                        // Count by span with span details
+                        spanCount: [
+                            {
+                                $group: {
+                                    _id: "$span",
+                                    count: { $sum: 1 }
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "spans",
+                                    localField: "_id",
+                                    foreignField: "_id",
+                                    as: "span"
+                                }
+                            },
+                            {
+                                $unwind: {
+                                    path: "$span",
+                                    preserveNullAndEmptyArrays: true
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    span: {
+                                        _id: "$_id",
+                                        name: "$span.name",
+                                        startPoint: "$span.startPoint.placeName",
+                                        endPoint: "$span.endPoint.placeName"
+                                    },
+                                    count: 1
+                                }
+                            },
+                            {
+                                $sort: { count: -1 }
+                            }
+                        ],
+                        // Total count
+                        totalDocuments: [
+                            {
+                                $count: "count"
+                            }
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        statusCount: 1,
+                        projectCount: 1,
+                        createdByCount: 1,
+                        spanCount: 1,
+                        totalDocuments: {
+                            $ifNull: [
+                                { $arrayElemAt: ["$totalDocuments.count", 0] },
+                                0
+                            ]
+                        }
+                    }
+                }
+            ]);
+
+            return (facets || { statusCount: [], projectCount: [], createdByCount: [], spanCount: [], totalDocuments: 0 });
         },
         activity: async (_, { _id }, { req, res, user }, info) => {
             const activity = await ActivityModel.findOne({ project: { $in: user.projects }, _id: _id });

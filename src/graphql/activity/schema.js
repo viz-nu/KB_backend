@@ -71,7 +71,8 @@ type ActivityPagination {
     PaginationMetaData: PaginationMetaData
 }
  type Query{
-  activities(page: Int = 1, limit: Int = 10 status:String): ActivityPagination @requireAnyScope(scopes: ["activity:read","activity:write"])
+  activities(page: Int = 1, limit: Int = 10 status:String span:[ID] project:[ID] createdBy:[ID] fromDate:DateTime toDate:DateTime): ActivityPagination @requireAnyScope(scopes: ["activity:read","activity:write"])
+  activitiesFacet(status:String span:[ID] project:[ID] createdBy:[ID]): JSON @requireAnyScope(scopes: ["activity:read","activity:write"])
   activity(_id: ID!): Activity @requireAnyScope(scopes: ["activity:read","activity:write"])
  }
 
