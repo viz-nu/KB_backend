@@ -7,7 +7,7 @@ export const projectResolvers = {
             let filters = { _id: { $in: user.projects } };
             const totalDocuments = await ProjectModel.countDocuments(filters);
             const totalPages = Math.ceil(totalDocuments / limit);
-            let query = ProjectModel.find(filters).skip((page - 1) * limit).limit(limit);
+            let query = ProjectModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
             const projectFields = getRequestedFieldNames(info, ['data']);
             if (projectFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (projectFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
@@ -15,7 +15,7 @@ export const projectResolvers = {
             return { data: projects, metaData: { page, limit, totalPages, totalDocuments } };
         },
         project: async (_, { _id }, { req, res, user }, info) => {
-            const project = await ProjectModel.findOne({ _id: _id, _id: { $in: user.projects } });
+            const project = await ProjectModel.findOne({ $and: [{ _id: _id }, { _id: { $in: user.projects } }] });
             if (!project) throw new GraphQLError("Project not found", { extensions: { code: 'PROJECT_NOT_FOUND' } });
             return project;
         }

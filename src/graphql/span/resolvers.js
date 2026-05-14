@@ -10,7 +10,7 @@ export const spanResolvers = {
             if (status) filters.status = status;
             const totalDocuments = await SpanModel.countDocuments(filters);
             const totalPages = Math.ceil(totalDocuments / limit);
-            let query = SpanModel.find(filters).skip((page - 1) * limit).limit(limit);
+            let query = SpanModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
             const spanFields = getRequestedFieldNames(info, ['data']);
             if (spanFields.has("project")) query = query.populate({ path: 'project', model: "Project" });
             if (spanFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
@@ -20,13 +20,13 @@ export const spanResolvers = {
             return { data: spans, metaData: { page, limit, totalPages, totalDocuments } };
         },
         span: async (_, { _id }, { req, res, user }, info) => {
-            const span = await SpanModel.findOne({ _id: _id, _id: { $in: user.spans } });
-            if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });
-            const spanFields = getRequestedFieldNames(info, ['data']);
-            if (spanFields.has("project")) span = span.populate({ path: 'project', model: "Project" });
-            if (spanFields.has("createdBy")) span = span.populate({ path: 'createdBy', model: "User" });
-            if (spanFields.has("updatedBy")) span = span.populate({ path: 'updatedBy', model: "User" });
-            if (spanFields.has("staff")) span = span.populate({ path: 'staff', model: "User" });
+            let query = SpanModel.findOne({ $and: [{ _id: _id }, { _id: { $in: user.spans } }] });
+            const spanFields = getRequestedFieldNames(info);
+            if (spanFields.has("project")) query = query.populate({ path: 'project', model: "Project" });
+            if (spanFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
+            if (spanFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
+            if (spanFields.has("staff")) query = query.populate({ path: 'staff', model: "User" });
+            const span = await query;
             return span;
         }
     },
@@ -40,8 +40,8 @@ export const spanResolvers = {
             await user.save();
             return span;
         },
-        updateSpan: async (_, { _id, spanInput}, { req, res, user }, info) => {
-            const {name, startPoint, endPoint, chapters, Vault,status } = spanInput;
+        updateSpan: async (_, { _id, spanInput }, { req, res, user }, info) => {
+            const { name, startPoint, endPoint, chapters, Vault, status } = spanInput;
             if (!user.spans.includes(_id)) throw new GraphQLError("You are not authorized to update this span", { extensions: { code: 'UNAUTHORIZED' } });
             const span = await SpanModel.findById(_id);
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });

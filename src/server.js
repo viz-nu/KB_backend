@@ -14,7 +14,7 @@ import 'dotenv/config'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const reactBuildPath = path.resolve(__dirname, '../build');
-const whitelist = ["http://localhost:5174", "http://localhost:3000", "http://localhost:8080", "https://studio.apollographql.com","https://kbbackend-production.up.railway.app"];
+const whitelist = ["http://localhost:5174", "http://localhost:3000", "http://localhost:8080", "https://studio.apollographql.com", "https://kbbackend-production.up.railway.app"];
 export const corsOptions = {
     origin: (origin, callback) => (!origin || whitelist.indexOf(origin) !== -1) ? callback(null, true) : callback(new Error('Not allowed by CORS')),
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
@@ -61,8 +61,6 @@ export const createApp = async () => {
         // });
         // app.use(express.urlencoded({ limit: '50mb', extended: true }));
         app.use(bodyParser.urlencoded({ extended: true }));
-        // Routes
-        app.get('/{*splat}', (_, res) => res.status(200).sendFile(path.join(reactBuildPath, 'index.html')));
         // Apollo setup
         try {
             await registerApollo(app, server);
@@ -70,6 +68,8 @@ export const createApp = async () => {
             console.error("error with Apollo setup", error);
             throw error;
         }
+        // Routes
+        app.get('/{*splat}', (_, res) => res.status(200).sendFile(path.join(reactBuildPath, 'index.html')));
         // Error handling
         try {
             app.use(errorHandlerMiddleware);

@@ -9,14 +9,14 @@ export const userResolvers = {
         me: async (_, { }, { req, res, user }, info) => {
             return user;
         },
-        users: async (_, { page = 1, limit = 10, projects, isActive = true, role, includeSelf = true }, { req, res, user }, info) => {            
+        users: async (_, { page = 1, limit = 10, projects, isActive = true, role, includeSelf = true }, { req, res, user }, info) => {
             let filters = includeSelf ? {} : { _id: { $ne: user._id } };
             if (projects) filters.projects = { $in: projects };
             if (typeof isActive === "boolean") filters.isActive = isActive;
             if (role) filters.role = role;
             const totalDocuments = await UserModel.countDocuments(filters);
             const totalPages = Math.ceil(totalDocuments / limit);
-            let query = UserModel.find(filters).skip((page - 1) * limit).limit(limit);
+            let query = UserModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
             const userFields = getRequestedFieldNames(info, ['data']);
             if (userFields.has("projects")) query = query.populate({ path: 'projects', model: "Project" });
             const users = await query;
@@ -45,7 +45,7 @@ export const userResolvers = {
                 userInput.projects = projects.map(project => project._id);
             }
             userInput.createdBy = user._id;
-            userInput.password= await bcrypt.hash(userInput.password, 10);
+            userInput.password = await bcrypt.hash(userInput.password, 10);
             const newUser = await UserModel.create(userInput);
             return newUser;
         },
@@ -55,7 +55,7 @@ export const userResolvers = {
                 if (projects.length !== userInput.projects.length) throw new GraphQLError("Projects not found", { extensions: { code: 'PROJECTS_NOT_FOUND' } });
                 userInput.projects = projects.map(project => project._id);
             }
-            if(userInput.password) userInput.password= await bcrypt.hash(userInput.password, 10);
+            if (userInput.password) userInput.password = await bcrypt.hash(userInput.password, 10);
             const UpdatedUser = await UserModel.findByIdAndUpdate(_id, { ...userInput, updatedBy: user._id }, { new: true });
             if (!UpdatedUser) throw new GraphQLError("User not found", { extensions: { code: 'USER_NOT_FOUND' } });
             return UpdatedUser;
