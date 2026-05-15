@@ -5,26 +5,27 @@ export const VaultSchema = new mongoose.Schema({
     spentBudjet: Number,
     logs: mongoose.Schema.Types.Mixed,
 });
-const MeasurementSchema = new mongoose.Schema({
-    key: { type: String },
-    label: { type: String },
-    unit: { type: String },
-    type: { type: String, enum: MeasurementTypeEnum },
-    options: [String],
-    billingRate: Number,
-    fixedNumber: Number,
-    fixedString: String,
-    requiresPhoto: Boolean
-});
-MeasurementSchema.add({ columns: [MeasurementSchema] });
+// const MeasurementSchema = new mongoose.Schema({
+//     key: { type: String },
+//     label: { type: String },
+//     unit: { type: String },
+//     type: { type: String, enum: MeasurementTypeEnum },
+//     options: [String],
+//     billingRate: Number,
+//     fixedNumber: Number,
+//     fixedString: String,
+//     requiresPhoto: Boolean,
+//     targetValue: mongoose.Schema.Types.Mixed
+// });
+// MeasurementSchema.add({ columns: [MeasurementSchema] });
 const ItemSchema = new mongoose.Schema({
     label: { type: String },
     code: { type: String },
     description: { type: String },
-    measurements: [MeasurementSchema],
+    measurements: mongoose.Schema.Types.Mixed,
 });
 export const ChapterSchema = new mongoose.Schema({
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },  
+    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     name: { type: String },
     code: { type: String },
     color: { type: String, enum: ColorCodesEnum },
