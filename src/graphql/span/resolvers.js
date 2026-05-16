@@ -34,16 +34,16 @@ export const spanResolvers = {
     },
     Mutation: {
         createSpan: async (_, { spanInput }, { req, res, user }, info) => {
-            const { project, name, startPoint, endPoint, chapters, Vault } = spanInput;
+            const { project, name, startPoint, endPoint, chapters, Vault,TargetedValues } = spanInput;
             const Project = await ProjectModel.findOne({ $and: [{ _id: project }, { _id: { $in: user.projects } }] });
             if (!Project) throw new GraphQLError("Project not found", { extensions: { code: 'PROJECT_NOT_FOUND' } });
-            const span = await SpanModel.create({ name, startPoint, endPoint, chapters, Vault, project: Project._id, createdBy: user._id });
+            const span = await SpanModel.create({ name, startPoint, endPoint, chapters, Vault, TargetedValues, project: Project._id, createdBy: user._id });
             user.spans.push(span._id);
             await user.save();
             return span;
         },
         updateSpan: async (_, { _id, spanInput }, { req, res, user }, info) => {
-            const { name, startPoint, endPoint, chapters, Vault, status } = spanInput;
+            const { name, startPoint, endPoint, chapters, Vault, TargetedValues, status } = spanInput;
             if (!user.spans.includes(_id)) throw new GraphQLError("You are not authorized to update this span", { extensions: { code: 'UNAUTHORIZED' } });
             const span = await SpanModel.findById(_id);
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'SPAN_NOT_FOUND' } });
@@ -52,6 +52,7 @@ export const spanResolvers = {
             if (endPoint) span.endPoint = endPoint;
             if (chapters) span.chapters = chapters;
             if (Vault) span.Vault = Vault;
+            if (TargetedValues) span.TargetedValues = TargetedValues;
             if (status) span.status = status;
             span.updatedBy = user._id;
             await span.save();

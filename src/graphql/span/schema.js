@@ -21,8 +21,15 @@ chapters: [Chapter]
 Vault: Vault
 createdBy: User
 staff: [User]
+TargetedValues: [TargetedValues]
 createdAt: DateTime
 updatedAt: DateTime
+}
+type TargetedValues {
+    chapterId: ID
+    itemId: String
+    measurementLabel: String
+    targetValue: Int
 }
 input terminalInput {
     chainNumber:Int
@@ -37,6 +44,13 @@ input SpanInput {
     status: SpanStatusEnum
     chapters: [ID]
     Vault: VaultInput
+    TargetedValues: [TargetedValuesInput]
+}
+input TargetedValuesInput {
+    chapterId: ID
+    itemId: String
+    measurementLabel: String
+    targetValue: Int
 }
  type SpanPagination {
     data: [Span]
