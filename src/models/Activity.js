@@ -5,15 +5,17 @@ const AuditLogSchema = new mongoose.Schema({
     description: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true });
+const RemarksSchema = new mongoose.Schema({
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    notes: { type: String },
+}, { timestamps: true });
 const activitySchema = new mongoose.Schema({
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     span: { type: mongoose.Schema.Types.ObjectId, ref: "Span" },
     status: { type: String, required: true, enum: EntryStatus, default: "SUBMITTED" },
     locationDescription: String,
-    remarks: String,
-    adminRemark: String,
-    returnReason: String,
-    WorkCategory: String,
+    remarks: [RemarksSchema],
+    chapter: String,
     lineItems: mongoose.Schema.Types.Mixed,
     auditLogs: [AuditLogSchema],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

@@ -27,14 +27,20 @@ type AuditLog {
     createdAt: DateTime
     updatedAt: DateTime
 }
+type Remarks {
+    createdBy: User
+    notes: String
+    createdAt: DateTime
+    updatedAt: DateTime
+}
 type Activity {
     _id: ID
     project: Project
     span: Span
-    WorkCategory: String
+    chapter: String
     status: EntryStatusEnum
     locationDescription: String
-    remarks: String
+    remarks: [Remarks]
     adminRemark: String
     lineItems:JSON
     returnReason: String
@@ -59,7 +65,7 @@ input SemChecklistInput {
 input ActivityInput {
     spanId: ID
     lineItems:JSON
-    WorkCategory: String
+    chapter: String
     locationDescription: String
     remarks: String
     adminRemark: String
@@ -75,10 +81,15 @@ type ActivityPagination {
   activitiesFacet(status:String span:[ID] project:[ID] createdBy:[ID]): JSON @requireAnyScope(scopes: ["activity:read","activity:write"])
   activity(_id: ID!): Activity @requireAnyScope(scopes: ["activity:read","activity:write"])
  }
+input statusUpdateInput {
+    status: String
+    note: String
+  }
 
  type Mutation{
   createActivity(activityInput: ActivityInput!): Activity @requireScope(scope: "activity:write")
-  updateActivity(_id: ID!, activityInput: ActivityInput!): Activity @requireScope(scope: "activity:write")
+  updateActivityStatus(_id: ID!, statusUpdateInput: statusUpdateInput!): Activity @requireScope(scope: "activity:write")
   deleteActivity(_id: ID!): Boolean @requireScope(scope: "activity:write")
+  updateActivity(_id: ID!, lineItems: JSON): Activity @requireScope(scope: "activity:write")
  }
 `;
