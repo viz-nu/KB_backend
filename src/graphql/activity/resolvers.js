@@ -222,7 +222,7 @@ export const activityResolvers = {
             return activity;
         },
         updateActivity: async (_, { _id, lineItems }, { req, res, user }, info) => {
-            const activity = await ActivityModel.findOneAndUpdate({ $and: [{ _id: _id }, { createdBy: user._id }] }, { lineItems, updatedBy: user._id }, { new: true });
+            const activity = await ActivityModel.findOneAndUpdate({ $and: [{ _id: _id }, { createdBy: user._id }] }, {status:"SUBMITTED", lineItems, updatedBy: user._id }, { new: true });
             if (!activity) throw new GraphQLError("Activity not updated", { extensions: { code: 'ACTIVITY_NOT_UPDATED' } });
             return activity;
         },

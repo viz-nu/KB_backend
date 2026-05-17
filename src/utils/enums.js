@@ -14,3 +14,4 @@ export const ColorCodesEnum = [
     '#F97316', '#14B8A6', '#6366F1', '#EF4444', '#A855F7', '#EC4899',
 ];
 export const MeasurementTypeEnum = ["number", "text", "select", "multiselect", "boolean", "table", "time", "phone"];
+export const spanStatusEnum = ["IN_PROGRESS", "COMPLETED", "CANCELLED", "PENDING"];

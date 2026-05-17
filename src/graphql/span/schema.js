@@ -57,8 +57,9 @@ input TargetedValuesInput {
     PaginationMetaData: PaginationMetaData
  }
  type Query{
-    spans(page: Int = 1, limit: Int = 10, project: ID, status: SpanStatusEnum): SpanPagination @requireAnyScope(scopes: ["span:read","span:write"])
+    spans(page: Int, limit: Int , projects:[ID], status: String, startPoints:[String], endPoints:[String]): SpanPagination @requireAnyScope(scopes: ["span:read","span:write"])
     span(_id: ID!): Span @requireAnyScope(scopes: ["span:read","span:write"])
+    spansFacet(projects: [ID], status: String startPoints:[String], endPoints:[String]): JSON @requireAnyScope(scopes: ["span:read","span:write"])
  }
  type Mutation{ 
     createSpan(spanInput: SpanInput!): Span @requireScope(scope: "span:write")
