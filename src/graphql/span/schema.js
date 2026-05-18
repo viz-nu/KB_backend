@@ -7,7 +7,7 @@ enum SpanStatusEnum {
 }
 type terminal {
     placeName: String
-    chainNumber:Int
+    chainNumber:Float
     pointLocation: PointLocation
 }
 type Span {
@@ -32,7 +32,7 @@ type TargetedValues {
     targetValue: Int
 }
 input terminalInput {
-    chainNumber:Int
+    chainNumber:Float
     placeName: String
     pointLocation: PointLocationInput
 }
