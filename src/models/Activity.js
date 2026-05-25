@@ -15,7 +15,7 @@ const activitySchema = new mongoose.Schema({
     status: { type: String, required: true, enum: EntryStatus, default: "SUBMITTED" },
     locationDescription: String,
     remarks: [RemarksSchema],
-    chapter: String,
+    chapter: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     lineItems: mongoose.Schema.Types.Mixed,
     auditLogs: [AuditLogSchema],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

@@ -24,6 +24,7 @@ export const activityResolvers = {
             let query = ActivityModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
             const activityFields = getRequestedFieldNames(info, ['data']);
             if (activityFields.has("span")) query = query.populate({ path: 'span', model: "Span" });
+            if (activityFields.has("chapter")) query = query.populate({ path: 'chapter', model: "Chapter" });
             if (activityFields.has("project")) query = query.populate({ path: 'project', model: "Project" });
             if (activityFields.has("createdBy")) query = query.populate({ path: 'createdBy', model: "User" });
             if (activityFields.has("updatedBy")) query = query.populate({ path: 'updatedBy', model: "User" });
@@ -208,10 +209,10 @@ export const activityResolvers = {
     },
     Mutation: {
         createActivity: async (_, { activityInput }, { req, res, user }, info) => {
-            const { spanId, lineItems, locationDescription, remarks } = activityInput
+            const { spanId, lineItems, locationDescription, remarks, chapter } = activityInput
             const span = await SpanModel.findOne({ $and: [{ _id: spanId }, { _id: { $in: user.spans } }] });
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'Spans' } });
-            const activity = await ActivityModel.create({ lineItems, locationDescription, remarks, span: spanId, project: span.project, createdBy: user._id });
+            const activity = await ActivityModel.create({ lineItems, chapter, locationDescription, remarks, span: spanId, project: span.project, createdBy: user._id });
             if (!activity) throw new GraphQLError("Activity not created", { extensions: { code: 'ACTIVITY_NOT_CREATED' } });
             return activity;
         },
@@ -222,7 +223,7 @@ export const activityResolvers = {
             return activity;
         },
         updateActivity: async (_, { _id, lineItems }, { req, res, user }, info) => {
-            const activity = await ActivityModel.findOneAndUpdate({ $and: [{ _id: _id }, { createdBy: user._id }] }, {status:"SUBMITTED", lineItems, updatedBy: user._id }, { new: true });
+            const activity = await ActivityModel.findOneAndUpdate({ $and: [{ _id: _id }, { createdBy: user._id }] }, { status: "SUBMITTED", lineItems, updatedBy: user._id }, { new: true });
             if (!activity) throw new GraphQLError("Activity not updated", { extensions: { code: 'ACTIVITY_NOT_UPDATED' } });
             return activity;
         },

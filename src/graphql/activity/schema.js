@@ -37,7 +37,7 @@ type Activity {
     _id: ID
     project: Project
     span: Span
-    chapter: String
+    chapter: Chapter
     status: EntryStatusEnum
     locationDescription: String
     remarks: [Remarks]
@@ -65,7 +65,7 @@ input SemChecklistInput {
 input ActivityInput {
     spanId: ID
     lineItems:JSON
-    chapter: String
+    chapter: ID
     locationDescription: String
     remarks: String
     adminRemark: String
