@@ -2,6 +2,7 @@ export const userTypeDefs = `#graphql
 
 type User {
     _id: ID
+    spans: [Span]
     name: String
     designation: String
     email: String
@@ -12,6 +13,7 @@ type User {
 }
 input UserInput {
     projects: [ID]
+    spans: [ID]
     name: String
     designation: String
     email: String

@@ -48,6 +48,8 @@ type Activity {
     updatedBy: User
     createdAt: DateTime
     updatedAt: DateTime
+    chinageFrom: Float
+    chinageTo: Float
 }
 input PhotoInput {
     url: String!
@@ -71,6 +73,8 @@ input ActivityInput {
     adminRemark: String
     returnReason: String
     status: String
+    chinageFrom: Float
+    chinageTo: Float
 }
 type ActivityPagination {
     data: [Activity]

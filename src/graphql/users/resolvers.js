@@ -7,6 +7,8 @@ import { ProjectModel } from "../../models/Project.js";
 export const userResolvers = {
     Query: {
         me: async (_, { }, { req, res, user }, info) => {
+            user = await user.populate({ path: 'projects', model: "Project" });
+            user = await user.populate({ path: 'spans', model: "Span" });
             return user;
         },
         users: async (_, { page = 1, limit = 10, projects, isActive = true, role, includeSelf = true }, { req, res, user }, info) => {
@@ -19,12 +21,16 @@ export const userResolvers = {
             let query = UserModel.find(filters).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit);
             const userFields = getRequestedFieldNames(info, ['data']);
             if (userFields.has("projects")) query = query.populate({ path: 'projects', model: "Project" });
+            if (userFields.has("spans")) query = query.populate({ path: 'spans', model: "Span" });
             const users = await query;
             return { data: users, PaginationMetaData: { page, limit, totalPages, totalDocuments } };
         },
         user: async (_, { _id }, { req, res, user }, info) => {
             const User = await UserModel.findById(_id);
             if (!User) throw new GraphQLError("User not found", { extensions: { code: 'USER_NOT_FOUND' } });
+            const userFields = getRequestedFieldNames(info, ['data']);
+            if (userFields.has("projects")) User = User.populate({ path: 'projects', model: "Project" });
+            if (userFields.has("spans")) User = User.populate({ path: 'spans', model: "Span" });
             return User;
         }
     },
@@ -44,9 +50,17 @@ export const userResolvers = {
                 if (projects.length !== userInput.projects.length) throw new GraphQLError("Projects not found", { extensions: { code: 'PROJECTS_NOT_FOUND' } });
                 userInput.projects = projects.map(project => project._id);
             }
+            if (userInput.spans) {
+                const spans = await SpanModel.find({ _id: { $in: userInput.spans } });
+                if (spans.length !== userInput.spans.length) throw new GraphQLError("Spans not found", { extensions: { code: 'SPANS_NOT_FOUND' } });
+                userInput.spans = spans.map(span => span._id);
+            }
             userInput.createdBy = user._id;
             userInput.password = await bcrypt.hash(userInput.password, 10);
             const newUser = await UserModel.create(userInput);
+            for (const span of userInput.spans) {
+                await SpanModel.findByIdAndUpdate(span, { $addToSet: { staff: newUser._id } });
+            }
             return newUser;
         },
         updateUser: async (_, { _id, userInput }, { req, res, user }, info) => {

@@ -209,10 +209,10 @@ export const activityResolvers = {
     },
     Mutation: {
         createActivity: async (_, { activityInput }, { req, res, user }, info) => {
-            const { spanId, lineItems, locationDescription, remarks, chapter } = activityInput
+            const { spanId, lineItems, locationDescription, remarks, chapter, chinageFrom, chinageTo } = activityInput
             const span = await SpanModel.findOne({ $and: [{ _id: spanId }, { _id: { $in: user.spans } }] });
             if (!span) throw new GraphQLError("Span not found", { extensions: { code: 'Spans' } });
-            const activity = await ActivityModel.create({ lineItems, chapter, locationDescription, remarks, span: spanId, project: span.project, createdBy: user._id });
+            const activity = await ActivityModel.create({ lineItems, chapter, locationDescription, remarks, span: spanId, project: span.project, createdBy: user._id, chinageFrom, chinageTo });
             if (!activity) throw new GraphQLError("Activity not created", { extensions: { code: 'ACTIVITY_NOT_CREATED' } });
             return activity;
         },

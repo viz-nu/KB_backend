@@ -20,5 +20,7 @@ const activitySchema = new mongoose.Schema({
     auditLogs: [AuditLogSchema],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    chinageFrom: { type: Number },
+    chinageTo: { type: Number },
 }, { timestamps: true });
 export const ActivityModel = mongoose.model("Activity", activitySchema);
